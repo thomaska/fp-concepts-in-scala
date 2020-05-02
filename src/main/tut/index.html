@@ -40,15 +40,57 @@ Let's think of mathematical functions
 
 ---
 
-## How would you solve this?
+## What is x?
 
 \\(y=3\\)
 
 \\(z=2*y\\)
 
-\\(x=3*y - z\\)
+\\(x=z^2 - z\\)
 
-What is ```x```?
+---
+## Substitute and solve
+
+\\(y=3\\)
+
+\\(z=2*y\\)
+
+\\(x=z^2 - z\\)
+
+<br>
+\\(x = (2 \times y)^2 - 2 * y\\)
+
+\\(x = (2 \times 3)^2 - 2 \times 3\\)
+
+\\(x=30\\)
+
+---
+
+## Could you do the same with code?
+
+```scala
+val it = List(1, 2, 3).iterator
+val y = it.next()
+val x = y^2 + y
+```
+
+---
+
+## Could you do the same with code?
+
+```scala
+val it = List(1, 2, 3).iterator
+val y = it.next()
+val x = y^2 + y
+```
+
+```scala
+var x = y^2 + y
+x = it.next()^2 + it.next()
+x = 1^2 + 2
+x = 3
+```
+<div style="font-size:100px">&#128530;</div>
 
 ---
 ## Where to go next?
