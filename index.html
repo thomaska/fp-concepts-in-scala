@@ -19,7 +19,7 @@ Thomas Kaliakos • [@tkaliakos] • [Monoid]
 
 - What does Functional Programming even mean?
 - Functional Programming Concepts
-- Let's write some code
+- Let's see it in practice
 
 ---
 ## What does Functional Programming even mean?
@@ -42,6 +42,9 @@ Let's think of mathematical functions
 \\(f(x) = x^2 + 3*x + 4\\)
 
 \\(e^{i\pi} - 1 = 0\\)
+---
+
+## Mathematical function properties
 
 ---
 
@@ -102,29 +105,59 @@ x = it.next()^2 + it.next()
 x = 1^2 + 2
 x = 3
 ```
+---
+
+## Could you do the same with code?
+
+```scala
+val it = List(1, 2, 3).iterator
+val y = it.next()
+val x = y^2 + y
+```
+
+```scala
+var x = y^2 + y
+x = it.next()^2 + it.next()
+x = 1^2 + 2
+x = 3
+```
 .center[<div style="font-size:100px">&#128530;</div>]
 
 ---
 ## Twitter wisdom
 .center[![Substitution model](img/noel_welsh_tweet.png)]
+---
+##
+.center[![Mindblown](img/tenor.gif)]
 
 ---
-## What are the benefits of equational reasoning and its "properties"?
-* Better reasoning about our programs
+## So what are the benefits of functional programming?
+* Better reasoning about our programs - equational reasoning
 * Easier to refactor
-* Correctness of the code can be inferred locally
+* Correctness of the code can be inferred locally - local reasoning
+* Leverage the type system, writing more expressive code
+---
+class: center, middle
+
+## Let's try to do this in code!
+
+---
+## You should all know this game :)
+.center[![TicTacToe](img/tic_tac_toe.png)]
+
 ---
 ## Where to go next?
 
 * [John De Goes - FP to the Max](https://youtu.be/sxudIMiOo68)
-* [What does discriminated mean?](./union-types.html)
+* [Creative Scala - free book](https://www.creativescala.org/)
+* [Functional Programming in Scala](https://www.manning.com/books/functional-programming-in-scala)
 
 ---
 class: center, middle
 
 # Questions?
 
-Thomas Kaliakos • [@tkaliakos] • [Monoid]
+Thank you!
 
 
 [Monoid]:https://monoid.tech
