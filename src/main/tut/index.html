@@ -19,7 +19,7 @@ Thomas Kaliakos • [@tkaliakos] • [Monoid]
 
 - What does Functional Programming even mean?
 - Functional Programming Concepts
-- Let's write some code
+- Let's see it in practice
 
 ---
 ## What does Functional Programming even mean?
@@ -42,6 +42,9 @@ Let's think of mathematical functions
 \\(f(x) = x^2 + 3*x + 4\\)
 
 \\(e^{i\pi} - 1 = 0\\)
+---
+
+## Mathematical function properties
 
 ---
 
@@ -86,6 +89,22 @@ val y = it.next()
 val x = y^2 + y
 ```
 
+---
+
+## Could you do the same with code?
+
+```scala
+val it = List(1, 2, 3).iterator
+val y = it.next()
+val x = y^2 + y
+```
+
+```scala
+var x = y^2 + y
+x = it.next()^2 + it.next()
+x = 1^2 + 2
+x = 3
+```
 ---
 
 ## Could you do the same with code?
