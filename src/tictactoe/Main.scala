@@ -1,15 +1,14 @@
 package tictactoe
 
 import scala.io.StdIn
-import scala.util.Random
+import scala.util.{Random, Try}
 
 /**
-* Symptoms:
- * - Sometimes the game crashes in the main menu
- * - Sometimes the game crashes during play
- * - Sometimes the computer takes quite some time to play
- * - No testing
- */
+  * Symptoms:
+  * - Made functions total
+  * - Sometimes the computer takes quite some time to play
+  * - No testing
+  */
 object Main extends App {
   var grid = Array.fill(3, 3)("")
   var loop = true
@@ -23,6 +22,7 @@ object Main extends App {
       case "N" =>
         printGrid
         loop = false
+      case _ => println("Please enter a valid option.")
     }
   }
 
@@ -30,12 +30,8 @@ object Main extends App {
   var draw = false
 
   while (!somebodyWon && !draw) {
-    println(
-      "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
-    )
-    val coord = StdIn.readLine().split(" ")
-    val x = coord(0).toInt - 1
-    val y = coord(1).toInt - 1
+    val (x ,y) = readSquare
+
     grid(x)(y) = "X"
     printGrid
 
@@ -72,6 +68,27 @@ object Main extends App {
       }
     }
   }
+
+  private def readSquare:(Int, Int) = {
+    var invalidIntput = true
+    var x, y: Option[Int] = None
+    while (invalidIntput) {
+      println(
+        "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
+      )
+      val coord = StdIn.readLine().split(" ")
+      x = safeInt(coord(0).toInt).map(_ - 1)
+      y = safeInt(coord(1).toInt).map(_ - 1)
+      if(x.isDefined && y.isDefined && x.get < grid.length && y.get < grid(0).length)
+        invalidIntput = false
+      else {
+        println("Please enter the square using the correct format")
+      }
+    }
+    (x.get, y.get)
+  }
+
+  def safeInt(unsafeInt: => Int): Option[Int] = Try { unsafeInt }.toOption
 
   def playerWon(player: String): Boolean = {
     var allTheSame = true
