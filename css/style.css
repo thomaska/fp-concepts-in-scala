@@ -165,3 +165,14 @@ th .remark-inline-code {
     right   : 100px;
     top     : 100px;
 }
+
+img[alt=FindX] {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 80px;
+    width: 200px;
+    height: auto;
+    max-width: 50%;
+    max-height: 50%;
+    display: block;
+}
