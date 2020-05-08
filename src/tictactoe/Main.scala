@@ -10,7 +10,7 @@ import scala.util.{Random, Try}
   * - No testing
   */
 object Main extends App {
-  var grid = Array.fill(3, 3)("")
+  val grid: Array[Array[String]] = Array.fill(3, 3)("")
   var loop = true
 
   while (loop) {
@@ -20,7 +20,7 @@ object Main extends App {
       case "Q" =>
         System.exit(1)
       case "N" =>
-        printGrid
+        printGrid(grid)
         loop = false
       case _ => println("Please enter a valid option.")
     }
@@ -30,17 +30,17 @@ object Main extends App {
   var draw = false
 
   while (!somebodyWon && !draw) {
-    val (x ,y) = readSquare
+    val (x ,y) = readSquare(grid)
 
     grid(x)(y) = "X"
-    printGrid
+    printGrid(grid)
 
-    if (checkDraw()) {
+    if (checkDraw(grid)) {
       println("The game ended in a draw!")
       draw = true
     }
 
-    if (playerWon("X")) {
+    if (playerWon("X", grid)) {
       println("Congratulations!! You win!")
       somebodyWon = true
     }
@@ -53,23 +53,23 @@ object Main extends App {
         val randomY = Random.nextInt(3)
         if (grid(randomX)(randomY).isEmpty) {
           grid(randomX)(randomY) = "O"
-          printGrid
+          printGrid(grid)
           computerIsPlaying = false
         }
       }
-      if (checkDraw()) {
+      if (checkDraw(grid)) {
         println("The game ended in a draw!")
         draw = true
       }
 
-      if (playerWon("O")) {
+      if (playerWon("O", grid)) {
         println("Computer wins!")
         somebodyWon = true
       }
     }
   }
 
-  private def readSquare:(Int, Int) = {
+  private def readSquare(grid: Array[Array[String]]):(Int, Int) = {
     var invalidIntput = true
     var x, y: Option[Int] = None
     while (invalidIntput) {
@@ -90,7 +90,7 @@ object Main extends App {
 
   def safeInt(unsafeInt: => Int): Option[Int] = Try { unsafeInt }.toOption
 
-  def playerWon(player: String): Boolean = {
+  def playerWon(player: String, grid: Array[Array[String]]): Boolean = {
     var allTheSame = true
     for (i <- 0 to 2) {
       allTheSame = true
@@ -127,7 +127,7 @@ object Main extends App {
     allTheSame
   }
 
-  def checkDraw(): Boolean = {
+  def checkDraw(grid: Array[Array[String]]): Boolean = {
     var thereIsEmptySquare = false
     for (i <- 0 to 2) {
       for (j <- 0 to 2) {
@@ -139,7 +139,7 @@ object Main extends App {
     !thereIsEmptySquare
   }
 
-  def printGrid: Unit = {
+  def printGrid(grid: Array[Array[String]]): Unit = {
     for (i <- 0 to 2) {
       if (i != 0) {
         println("------------------------")
