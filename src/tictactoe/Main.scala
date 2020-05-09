@@ -30,7 +30,7 @@ object Main extends App {
   var draw = false
 
   while (!somebodyWon && !draw) {
-    val (x ,y) = readSquare(grid)
+    val (x ,y) = readSquare(grid, () => StdIn.readLine())
 
     grid(x)(y) = "X"
     printGrid(grid)
@@ -69,16 +69,16 @@ object Main extends App {
     }
   }
 
-  private def readSquare(grid: Array[Array[String]]):(Int, Int) = {
+  private def readSquare(grid: Array[Array[String]], readLine: () => String):(Int, Int) = {
     var invalidIntput = true
     var x, y: Option[Int] = None
     while (invalidIntput) {
       println(
         "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
       )
-      val coord = StdIn.readLine().split(" ")
-      x = safeInt(coord(0).toInt).map(_ - 1)
-      y = safeInt(coord(1).toInt).map(_ - 1)
+      val coord = readLine().split(" ")
+      x = safeOp(coord(0).toInt).map(_ - 1)
+      y = safeOp(coord(1).toInt).map(_ - 1)
       if(x.isDefined && y.isDefined && x.get < grid.length && y.get < grid(0).length)
         invalidIntput = false
       else {
@@ -88,7 +88,7 @@ object Main extends App {
     (x.get, y.get)
   }
 
-  def safeInt(unsafeInt: => Int): Option[Int] = Try { unsafeInt }.toOption
+  def safeOp[A](unsafe: => A): Option[A] = Try { unsafe }.toOption
 
   def playerWon(player: String, grid: Array[Array[String]]): Boolean = {
     var allTheSame = true
