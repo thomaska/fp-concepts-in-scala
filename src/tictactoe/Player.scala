@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.util.{Random, Try}
 
-trait Player {
+sealed trait Player {
   def name: String
   def sign: String
 

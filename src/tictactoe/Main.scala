@@ -1,32 +1,39 @@
 package tictactoe
 
-import tictactoe.Main.playerWon
+import tictactoe.Main.{grid, playerWon}
 
 import scala.annotation.tailrec
 import scala.io.StdIn
 
 /**
   * In this version:
-  * - Better separation of different functionalities, more testable code
-  * - Got rid of all the while loops
-  * - Still sometimes the computer takes quite some time to play
-  * - Would be good to make better use of types
+  * - Make better use of types
+  * - Separate creating an action and handling it
   */
 object Main extends App {
   val grid: Array[Array[String]] = Array.fill(3, 3)("")
 
   mainMenu(grid)
+
+  def mainMenuAction(input: () => String): MainMenuAction = {
+    input() match {
+      case "Q" => QuitGame
+      case "N" => NewGame
+      case _   => InvalidAction
+    }
+  }
+
   @tailrec
   def mainMenu(grid: Array[Array[String]]): Unit = {
     println("Press N for new game, or Q to quit:")
-    val input = StdIn.readLine
-    input match {
-      case "Q" =>
+    val action = mainMenuAction(() => StdIn.readLine())
+    action match {
+      case QuitGame =>
         println("Exiting...Thank you for playing TicTacToe!")
-      case "N" =>
+      case NewGame =>
         printGrid(grid)
         playGame(grid, Human)
-      case _ => {
+      case InvalidAction => {
         println("Please enter a valid option.")
         mainMenu(grid)
       }
@@ -35,20 +42,30 @@ object Main extends App {
 
   def playGame(grid: Array[Array[String]], currentPlayer: Player): Unit = {
 
+    val gameState = gameTurn(grid, currentPlayer)
+    printGrid(grid)
+    gameState match {
+      case Draw => println("The game ended in a draw!")
+      case Win(p) => {
+        p match {
+          case Human    => println("Congratulations!! You win!")
+          case Computer => println("Computer wins!")
+        }
+      }
+      case OnGoing(nextPlayer) => playGame(grid, nextPlayer)
+    }
+  }
+
+  private def gameTurn(grid: Array[Array[String]],
+                       currentPlayer: Player): GameResult = {
     val (x, y) = currentPlayer.getSquare(grid)
     grid(x)(y) = currentPlayer.sign
     println(s"${currentPlayer.name} played (${x + 1}, ${y + 1})")
-    printGrid(grid)
     if (checkDraw(grid))
-      println("The game ended in a draw!")
-    else if (playerWon(currentPlayer.sign, grid)) {
-      currentPlayer match {
-        case Human    => println("Congratulations!! You win!")
-        case Computer => println("Computer wins!")
-      }
-    } else {
-      playGame(grid, currentPlayer.next)
-    }
+      Draw
+    else if (playerWon(currentPlayer.sign, grid))
+      Win(currentPlayer)
+    else OnGoing(currentPlayer.next)
   }
 
   def playerWon(player: String, grid: Array[Array[String]]): Boolean = {
