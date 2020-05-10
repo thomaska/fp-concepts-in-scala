@@ -1,17 +1,18 @@
 package tictactoe
 
-import tictactoe.Main.{grid, playerWon}
+import tictactoe.Mark.Empty
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ArraySeq
 import scala.io.StdIn
 
 /**
   * In this version:
-  * - Make better use of types
-  * - Separate creating an action and handling it
+  * - Even more types!
+  * - Made gameTurn pure
   */
 object Main extends App {
-  val grid: Array[Array[String]] = Array.fill(3, 3)("")
+  private val grid: Grid = Grid(ArraySeq.fill(3, 3)(Empty))
 
   mainMenu(grid)
 
@@ -24,7 +25,7 @@ object Main extends App {
   }
 
   @tailrec
-  def mainMenu(grid: Array[Array[String]]): Unit = {
+  def mainMenu(grid: Grid): Unit = {
     println("Press N for new game, or Q to quit:")
     val action = mainMenuAction(() => StdIn.readLine())
     action match {
@@ -40,10 +41,10 @@ object Main extends App {
     }
   }
 
-  def playGame(grid: Array[Array[String]], currentPlayer: Player): Unit = {
+  def playGame(grid: Grid, currentPlayer: Player): Unit = {
 
-    val gameState = gameTurn(grid, currentPlayer)
-    printGrid(grid)
+    val (updatedGrid, gameState) = gameTurn(grid, currentPlayer)
+    printGrid(updatedGrid)
     gameState match {
       case Draw => println("The game ended in a draw!")
       case Win(p) => {
@@ -52,64 +53,62 @@ object Main extends App {
           case Computer => println("Computer wins!")
         }
       }
-      case OnGoing(nextPlayer) => playGame(grid, nextPlayer)
+      case OnGoing(nextPlayer) => playGame(updatedGrid, nextPlayer)
     }
   }
 
-  private def gameTurn(grid: Array[Array[String]],
-                       currentPlayer: Player): GameResult = {
+  private def gameTurn(grid: Grid,
+                       currentPlayer: Player): (Grid, GameResult) = {
     val (x, y) = currentPlayer.getSquare(grid)
-    grid(x)(y) = currentPlayer.sign
+    val updatedGrid = grid.set(x, y, currentPlayer.mark)
     println(s"${currentPlayer.name} played (${x + 1}, ${y + 1})")
     if (checkDraw(grid))
-      Draw
-    else if (playerWon(currentPlayer.sign, grid))
-      Win(currentPlayer)
-    else OnGoing(currentPlayer.next)
+      (updatedGrid, Draw)
+    else if (playerWon(currentPlayer.mark, updatedGrid))
+      (updatedGrid, Win(currentPlayer))
+    else (updatedGrid, OnGoing(currentPlayer.next))
   }
 
-  def playerWon(player: String, grid: Array[Array[String]]): Boolean = {
+  def playerWon(player: Mark, grid: Grid): Boolean = {
     var allTheSame = true
     for (i <- 0 to 2) {
       allTheSame = true
       for (j <- 0 to 2) {
-        if (grid(i)(j) != player)
+        if (grid.get(i, j) != player)
           allTheSame = false
       }
       if (allTheSame)
         return true
     }
-
     for (i <- 0 to 2) {
       allTheSame = true
       for (j <- 0 to 2) {
-        if (grid(j)(i) != player)
+        if (grid.get(j, i) != player)
           allTheSame = false
       }
       if (allTheSame)
         return true
     }
-
     allTheSame = true
     for (i <- 0 to 2) {
-      if (grid(i)(i) != player)
+      if (grid.get(i, i) != player)
         allTheSame = false
     }
     if (allTheSame)
       return true
     allTheSame = true
     for (i <- 0 to 2) {
-      if (grid(2 - i)(i) != player)
+      if (grid.get(2 - i, i) != player)
         allTheSame = false
     }
     allTheSame
   }
 
-  def checkDraw(grid: Array[Array[String]]): Boolean = {
+  def checkDraw(g: Grid): Boolean = {
     var thereIsEmptySquare = false
     for (i <- 0 to 2) {
       for (j <- 0 to 2) {
-        if (grid(i)(j).isEmpty) {
+        if (g.get(i, j).isEmpty) {
           thereIsEmptySquare = true
         }
       }
@@ -117,12 +116,12 @@ object Main extends App {
     !thereIsEmptySquare
   }
 
-  def printGrid(grid: Array[Array[String]]): Unit = {
+  def printGrid(g: Grid): Unit = {
     for (i <- 0 to 2) {
       if (i != 0) {
         println("------------------------")
       }
-      println(s"\t${grid(i)(0)}\t|\t${grid(i)(1)}\t|\t${grid(i)(2)}")
+      println(s"\t${g.get(i, 0)}\t|\t${g.get(i, 1)}\t|\t${g.get(i, 2)}")
     }
     println("\n")
   }
