@@ -1,5 +1,6 @@
 package tictactoe
 
+import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.util.{Random, Try}
 
@@ -11,81 +12,85 @@ import scala.util.{Random, Try}
   */
 object Main extends App {
   val grid: Array[Array[String]] = Array.fill(3, 3)("")
-  var loop = true
 
-  while (loop) {
+  mainMenu(grid)
+  @tailrec
+  def mainMenu(grid: Array[Array[String]]): Unit = {
     println("Press N for new game, or Q to quit:")
     val input = StdIn.readLine
     input match {
       case "Q" =>
-        System.exit(1)
+        println("Exiting...Thank you for playing TicTacToe!")
       case "N" =>
         printGrid(grid)
-        loop = false
-      case _ => println("Please enter a valid option.")
+        playGame(grid)
+      case _ => {
+        println("Please enter a valid option.")
+        mainMenu(grid)
+      }
     }
   }
 
-  var somebodyWon = false
-  var draw = false
+  def playGame(grid: Array[Array[String]]) = {
+    var somebodyWon = false
+    var draw = false
 
-  while (!somebodyWon && !draw) {
-    val (x ,y) = readSquare(grid, () => StdIn.readLine())
+    while (!somebodyWon && !draw) {
+      val (x, y) = readSquare(grid, () => StdIn.readLine())
 
-    grid(x)(y) = "X"
-    printGrid(grid)
+      grid(x)(y) = "X"
+      printGrid(grid)
 
-    if (checkDraw(grid)) {
-      println("The game ended in a draw!")
-      draw = true
-    }
-
-    if (playerWon("X", grid)) {
-      println("Congratulations!! You win!")
-      somebodyWon = true
-    }
-
-    if (!somebodyWon && !draw) {
-      println("Computer plays:")
-      var computerIsPlaying = true
-      while (computerIsPlaying) {
-        val randomX = Random.nextInt(3)
-        val randomY = Random.nextInt(3)
-        if (grid(randomX)(randomY).isEmpty) {
-          grid(randomX)(randomY) = "O"
-          printGrid(grid)
-          computerIsPlaying = false
-        }
-      }
       if (checkDraw(grid)) {
         println("The game ended in a draw!")
         draw = true
       }
 
-      if (playerWon("O", grid)) {
-        println("Computer wins!")
+      if (playerWon("X", grid)) {
+        println("Congratulations!! You win!")
         somebodyWon = true
+      }
+
+      if (!somebodyWon && !draw) {
+        println("Computer plays:")
+        var computerIsPlaying = true
+        while (computerIsPlaying) {
+          val randomX = Random.nextInt(3)
+          val randomY = Random.nextInt(3)
+          if (grid(randomX)(randomY).isEmpty) {
+            grid(randomX)(randomY) = "O"
+            printGrid(grid)
+            computerIsPlaying = false
+          }
+        }
+        if (checkDraw(grid)) {
+          println("The game ended in a draw!")
+          draw = true
+        }
+
+        if (playerWon("O", grid)) {
+          println("Computer wins!")
+          somebodyWon = true
+        }
       }
     }
   }
 
-  private def readSquare(grid: Array[Array[String]], readLine: () => String):(Int, Int) = {
-    var invalidIntput = true
-    var x, y: Option[Int] = None
-    while (invalidIntput) {
-      println(
-        "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
-      )
-      val coord = readLine().split(" ")
-      x = safeOp(coord(0).toInt).map(_ - 1)
-      y = safeOp(coord(1).toInt).map(_ - 1)
-      if(x.isDefined && y.isDefined && x.get < grid.length && y.get < grid(0).length)
-        invalidIntput = false
-      else {
-        println("Please enter the square using the correct format")
-      }
+  @tailrec
+  private def readSquare(grid: Array[Array[String]],
+                         readLine: () => String): (Int, Int) = {
+    println(
+      "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
+    )
+    val coord = readLine().split(" ")
+    val x = safeOp(coord(0).toInt).map(_ - 1)
+    val y = safeOp(coord(1).toInt).map(_ - 1)
+    if (x.isDefined && y.isDefined && x.get < grid.length && y.get < grid(0).length) {
+      (x.get, y.get)
+    } else {
+      println("Please enter the square using the correct format")
+      readSquare(grid, readLine)
     }
-    (x.get, y.get)
   }
 
   def safeOp[A](unsafe: => A): Option[A] = Try { unsafe }.toOption
