@@ -1,14 +1,16 @@
 package tictactoe
 
+import tictactoe.Main.playerWon
+
 import scala.annotation.tailrec
 import scala.io.StdIn
-import scala.util.{Random, Try}
 
 /**
-  * Symptoms:
-  * - Made functions total
-  * - Sometimes the computer takes quite some time to play
-  * - No testing
+  * In this version:
+  * - Better separation of different functionalities, more testable code
+  * - Got rid of all the while loops
+  * - Still sometimes the computer takes quite some time to play
+  * - Would be good to make better use of types
   */
 object Main extends App {
   val grid: Array[Array[String]] = Array.fill(3, 3)("")
@@ -23,7 +25,7 @@ object Main extends App {
         println("Exiting...Thank you for playing TicTacToe!")
       case "N" =>
         printGrid(grid)
-        playGame(grid)
+        playGame(grid, Human)
       case _ => {
         println("Please enter a valid option.")
         mainMenu(grid)
@@ -31,69 +33,23 @@ object Main extends App {
     }
   }
 
-  def playGame(grid: Array[Array[String]]) = {
-    var somebodyWon = false
-    var draw = false
+  def playGame(grid: Array[Array[String]], currentPlayer: Player): Unit = {
 
-    while (!somebodyWon && !draw) {
-      val (x, y) = readSquare(grid, () => StdIn.readLine())
-
-      grid(x)(y) = "X"
-      printGrid(grid)
-
-      if (checkDraw(grid)) {
-        println("The game ended in a draw!")
-        draw = true
+    val (x, y) = currentPlayer.getSquare(grid)
+    grid(x)(y) = currentPlayer.sign
+    println(s"${currentPlayer.name} played (${x + 1}, ${y + 1})")
+    printGrid(grid)
+    if (checkDraw(grid))
+      println("The game ended in a draw!")
+    else if (playerWon(currentPlayer.sign, grid)) {
+      currentPlayer match {
+        case Human    => println("Congratulations!! You win!")
+        case Computer => println("Computer wins!")
       }
-
-      if (playerWon("X", grid)) {
-        println("Congratulations!! You win!")
-        somebodyWon = true
-      }
-
-      if (!somebodyWon && !draw) {
-        println("Computer plays:")
-        var computerIsPlaying = true
-        while (computerIsPlaying) {
-          val randomX = Random.nextInt(3)
-          val randomY = Random.nextInt(3)
-          if (grid(randomX)(randomY).isEmpty) {
-            grid(randomX)(randomY) = "O"
-            printGrid(grid)
-            computerIsPlaying = false
-          }
-        }
-        if (checkDraw(grid)) {
-          println("The game ended in a draw!")
-          draw = true
-        }
-
-        if (playerWon("O", grid)) {
-          println("Computer wins!")
-          somebodyWon = true
-        }
-      }
-    }
-  }
-
-  @tailrec
-  private def readSquare(grid: Array[Array[String]],
-                         readLine: () => String): (Int, Int) = {
-    println(
-      "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
-    )
-    val coord = readLine().split(" ")
-    val x = safeOp(coord(0).toInt).map(_ - 1)
-    val y = safeOp(coord(1).toInt).map(_ - 1)
-    if (x.isDefined && y.isDefined && x.get < grid.length && y.get < grid(0).length) {
-      (x.get, y.get)
     } else {
-      println("Please enter the square using the correct format")
-      readSquare(grid, readLine)
+      playGame(grid, currentPlayer.next)
     }
   }
-
-  def safeOp[A](unsafe: => A): Option[A] = Try { unsafe }.toOption
 
   def playerWon(player: String, grid: Array[Array[String]]): Boolean = {
     var allTheSame = true
