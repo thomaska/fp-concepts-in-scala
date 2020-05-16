@@ -8,13 +8,11 @@ import scala.io.StdIn
 
 /**
   * In this version:
-  * - Even more types!
-  * - Made gameTurn pure
+  * - Refactored playerWon and draw functions
   */
 object Main extends App {
-  private val grid: Grid = Grid(ArraySeq.fill(3, 3)(Empty))
 
-  mainMenu(grid)
+  mainMenu(Grid(ArraySeq.fill(3, 3)(Empty)))
 
   def mainMenuAction(input: () => String): MainMenuAction = {
     input() match {
@@ -62,58 +60,42 @@ object Main extends App {
     val (x, y) = currentPlayer.getSquare(grid)
     val updatedGrid = grid.set(x, y, currentPlayer.mark)
     println(s"${currentPlayer.name} played (${x + 1}, ${y + 1})")
-    if (checkDraw(grid))
-      (updatedGrid, Draw)
-    else if (playerWon(currentPlayer.mark, updatedGrid))
+    if (playerWon(currentPlayer.mark, updatedGrid))
       (updatedGrid, Win(currentPlayer))
+    else if (checkDraw(grid))
+    (updatedGrid, Draw)
     else (updatedGrid, OnGoing(currentPlayer.next))
   }
 
+  def checkRange(range: List[(Int, Int)], player: Mark, grid: Grid): Boolean = {
+    val lines: List[List[(Int, Int)]] = range.grouped(3).toList
+    val res = for {
+      line <- lines
+      lineRes = line
+        .map { case (x, y) => grid.get(x, y) == player }
+        .reduce(_ && _)
+    } yield lineRes
+    res.reduce(_ || _)
+  }
+
+  def rowRange = (0 to 8).map(_ / 3)
+  def colRange = (0 to 8).map(_ % 3)
+
   def playerWon(player: Mark, grid: Grid): Boolean = {
-    var allTheSame = true
-    for (i <- 0 to 2) {
-      allTheSame = true
-      for (j <- 0 to 2) {
-        if (grid.get(i, j) != player)
-          allTheSame = false
-      }
-      if (allTheSame)
-        return true
-    }
-    for (i <- 0 to 2) {
-      allTheSame = true
-      for (j <- 0 to 2) {
-        if (grid.get(j, i) != player)
-          allTheSame = false
-      }
-      if (allTheSame)
-        return true
-    }
-    allTheSame = true
-    for (i <- 0 to 2) {
-      if (grid.get(i, i) != player)
-        allTheSame = false
-    }
-    if (allTheSame)
-      return true
-    allTheSame = true
-    for (i <- 0 to 2) {
-      if (grid.get(2 - i, i) != player)
-        allTheSame = false
-    }
-    allTheSame
+    def rowsCheck = checkRange(rowRange.zip(colRange).toList, player, grid)
+    def colsCheck = checkRange(colRange.zip(rowRange).toList, player, grid)
+    def diagonalCheck = checkRange((0 to 2).zipWithIndex.toList, player, grid)
+    def otherDiagonalCheck =
+      checkRange((0 to 2).map(i => (2 - i, i)).toList, player, grid)
+    rowsCheck || colsCheck || diagonalCheck || otherDiagonalCheck
   }
 
   def checkDraw(g: Grid): Boolean = {
-    var thereIsEmptySquare = false
-    for (i <- 0 to 2) {
-      for (j <- 0 to 2) {
-        if (g.get(i, j).isEmpty) {
-          thereIsEmptySquare = true
-        }
-      }
-    }
-    !thereIsEmptySquare
+    rowRange
+      .zip(colRange)
+      .toList
+      .map { case (x, y) => !g.get(x, y).isEmpty }
+      .reduce(_ && _)
   }
 
   def printGrid(g: Grid): Unit = {
