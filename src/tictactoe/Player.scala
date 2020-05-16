@@ -12,7 +12,7 @@ sealed trait Player {
 
   def next: Player
 
-  def getSquare(grid: Grid): (Int, Int)
+  def getSquare(grid: Grid): IO[(Int, Int)]
 }
 
 case object Human extends Player {
@@ -22,30 +22,33 @@ case object Human extends Player {
 
   override val next: Player = Computer
 
-  @tailrec
-  override def getSquare(g: Grid): (Int, Int) = {
+  override def getSquare(g: Grid): IO[(Int, Int)] = {
     val grid = g.value
-    val (x, y) = readSquare(() => StdIn.readLine())
-    if (x >= grid.length || y >= grid(0).length || grid(x)(y) != Empty) {
-      println("Please enter a valid square")
-      getSquare(g)
-    } else (x, y)
+    readSquare(Main.readLine()).flatMap {
+      case (x, y) =>
+        if (x >= grid.length || y >= grid(0).length || grid(x)(y) != Empty) {
+          Main.putLine("Please enter a valid square").flatMap(_ => getSquare(g))
+        } else IO(() => (x, y))
+    }
   }
 
-  @tailrec
-  private def readSquare(readLine: () => String): (Int, Int) = {
-    println(
-      "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
-    )
-    val coord = readLine().split(" ")
-    val x = safeOp(coord(0).toInt).map(_ - 1)
-    val y = safeOp(coord(1).toInt).map(_ - 1)
-    if (x.isDefined && y.isDefined) {
-      (x.get, y.get)
-    } else {
-      println("Please enter the square using the correct format")
-      readSquare(readLine)
-    }
+  private def readSquare(readLine: IO[String]): IO[(Int, Int)] = {
+    for {
+      _ <- Main.putLine(
+        "You are player 'X'. Enter the square you want to play in the format: <row> <column>. Eg \"1 3\" is the top right square:"
+      )
+      coord <- Main.readLine().map(_.split(" "))
+      x = safeOp(coord(0).toInt).map(_ - 1)
+      y = safeOp(coord(1).toInt).map(_ - 1)
+      res <- {
+        if (x.isDefined && y.isDefined) {
+          IO(() => (x.get, y.get))
+        } else {
+          println("Please enter the square using the correct format")
+          readSquare(readLine)
+        }
+      }
+    } yield res
   }
 
   def safeOp[A](unsafe: => A): Option[A] = Try { unsafe }.toOption
@@ -57,12 +60,11 @@ case object Computer extends Player {
 
   override val next: Player = Human
 
-  @tailrec
-  override def getSquare(grid: Grid): (Int, Int) = {
+  override def getSquare(grid: Grid): IO[(Int, Int)] = {
     val randomX = Random.nextInt(grid.rows())
     val randomY = Random.nextInt(grid.cols())
     if (grid.get(randomX, randomY).isEmpty) {
-      (randomX, randomY)
+      IO(() => (randomX, randomY))
     } else getSquare(grid)
   }
 }
