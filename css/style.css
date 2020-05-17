@@ -167,9 +167,9 @@ th .remark-inline-code {
 }
 
 img[alt=FindX] {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 80px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 80px;
     width: 200px;
     height: auto;
     max-width: 50%;
